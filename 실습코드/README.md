@@ -12,6 +12,7 @@ npm install
 
 # 2. 백엔드 서버 구동
 npm start        # 또는 node server.js
+npm run start:slow   # 느린 네트워크 실험용 (API 응답 1.5~3초 랜덤 지연)
 
 # 3. 브라우저 접속
 # http://localhost:3000
@@ -23,11 +24,11 @@ npm start        # 또는 node server.js
 
 ### 1. `server.js` (Express 백엔드 API)
 - **대량 데이터셋**: 1,000건의 인메모리 게시글 데이터 자동 시드.
-- **방어적 파라미터 파싱**: `parseInt(..., 10)` 기수 명시, 음수 및 0 페이지 차단, `Math.min(..., 100)` 대량 조회 공격 방어.
-- **ORDER BY 화이트리스트 보안**: `SORT_WHITELIST` 객체 매핑으로 SQL Injection 원천 봉쇄 및 `id DESC` 동점자 방지 2차 정렬 결합.
+- **방어적 파라미터 파싱**: 숫자로만 된 양의 정수만 허용(`0`, `-1`, `abc`, `2abc` → 기본값), 문자열 타입 확인(반복 키 배열 차단), `Math.min(..., 100)` 대량 조회 방어.
+- **ORDER BY 화이트리스트 보안**: `Object.hasOwn(SORT_WHITELIST, key)`로 `__proto__`·`constructor` 등 상속 속성까지 차단하고, `id DESC` 동점자 방지 2차 정렬 결합.
 - **2대 페이징 API 제공**:
   - `GET /api/posts`: 오프셋 기반 페이징 (`LIMIT` / `OFFSET`, 표준 `meta` Envelope 응답)
-  - `GET /api/posts/cursor`: 고성능 커서 기반 페이징 (`WHERE id < ? ORDER BY id DESC LIMIT 10`, `limit + 1` 패턴으로 `COUNT(*)` 제거)
+  - `GET /api/posts/cursor`: 커서 기반 페이징 + 제목·본문 검색 (`WHERE (검색) AND id < ? ORDER BY id DESC LIMIT limit + 1`, `limit + 1` 패턴으로 `COUNT(*)` 제거)
 
 ### 2. `index.html` (SPA 프론트엔드 & 실시간 DevTools 검사기)
 - **탭 모드 전환**: [오프셋 번호 페이징] ↔ [커서 기반 무한 스크롤] 즉시 비교.
@@ -41,4 +42,4 @@ npm start        # 또는 node server.js
 
 1. **정렬 보안**: `server.js`에서 허용되지 않은 정렬 키(예: `sort=views; DROP TABLE--`) 입력 시 안전하게 기본값(`latest`)으로 격리되는지 검증하세요.
 2. **커서 페이징**: 100페이지 이상 스킵 시 오프셋 방식의 한계와 커서 방식의 속도 차이를 DevTools의 `X-Response-Time` 헤더로 측정해 보세요.
-3. **Race Condition 실험**: `index.html`에서 빠른 타이핑 시 콘솔에 `[AbortController] 이전 비동기 요청이 정상 취소되었습니다` 로그가 정상 출력되는지 확인하세요.
+3. **Race Condition 실험**: `index.html`에서 빠른 타이핑 시 콘솔에 `[AbortController] 요청 #n 취소됨` 로그가 출력되고, 우측 검사기의 "취소된 요청" 수가 증가하는지 확인하세요 (`npm run start:slow`로 실행하면 관찰이 쉽습니다).
