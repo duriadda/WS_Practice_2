@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 npm-debug.log*
+
+# 개인 작업 노트 (저장소 미포함)
+보고서_정리.md
