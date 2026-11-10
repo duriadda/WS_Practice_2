@@ -7,11 +7,11 @@
 ## 🚀 빠른 실행 방법
 
 ```bash
-# 1. 의존성 설치
-npm install express
+# 1. 의존성 설치 (package.json 기준, node_modules는 저장소에 포함하지 않음)
+npm install
 
 # 2. 백엔드 서버 구동
-node server.js
+npm start        # 또는 node server.js
 
 # 3. 브라우저 접속
 # http://localhost:3000
